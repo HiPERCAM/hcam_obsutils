@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hcam_obsutils"
+version = "0.0.2"
+authors = [
+  { name="Stuart Littlefair", email="s.littlefair@sheffield.ac.uk" },
+  { name="Martin Dyer", email="m.j.dyer@sheffield.ac.uk" },
+]
+description = "A collection of utility scripts for observing with HiPERCAM and ULTRACAM."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+  "numpy",
+  "astropy",
+  "scipy",
+  "trm.cline",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
+
+[project.scripts]
+missbias = "hcam_obsutils.scripts.missbias:main"
+
+[project.urls]
+Homepage = "https://github.com/hipercam/hcam_obsutils"
+Issues = "https://github.com/hipercam/hcam_obsutils/issues"
