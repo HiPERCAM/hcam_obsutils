@@ -17,6 +17,19 @@ HCAM_RE = "run[0-9][0-9][0-9][0-9].fits"
 
 
 def is_bias(header: Hhead | Uhead) -> bool:
+    """
+    Determine if a header corresponds to a bias frame.
+
+    Parameters
+    ----------
+    header : Hhead or Uhead
+        Header object to check.
+
+    Returns
+    -------
+    bool
+        True if the header corresponds to a bias frame, False otherwise.
+    """
     try:
         # assume ucam first
         target = header.header["TARGET"].lower()
@@ -55,10 +68,28 @@ def headers(dirpath: str, hcam: bool = False) -> Iterable[Hhead | Uhead]:
 
 
 def uhead_equal(h1: Uhead, h2: Uhead, fussy: bool = False) -> bool:
+    """
+    Determine if two Uhead objects correspond to the same format, for the purposes of calibration.
+
+    Parameters
+    ----------
+    h1 : Uhead
+        First header object.
+    h2 : Uhead
+        Second header object.
+    fussy : bool
+        If True, include avalanche gain in the comparison (only relevant for ULTRASPEC).
+
+    Returns
+    -------
+    bool
+        True if the two headers correspond to the same format, False otherwise.
+    """
+    # binning, gain, instrument, etc
     ok = (
         (h1.xbin == h2.xbin)
-        and (h1.instrument == h2.instrument)
         and (h1.ybin == h2.ybin)
+        and (h1.instrument == h2.instrument)
         and (len(h1.win) == len(h2.win))
         and (h1.gainSpeed == h2.gainSpeed)
         and (
@@ -67,11 +98,44 @@ def uhead_equal(h1: Uhead, h2: Uhead, fussy: bool = False) -> bool:
             else True
         )
     )
+    # check windows are the same
     if ok:
         for window in h1.win:
             if not any(w == window for w in h2.win):
                 ok = False
                 break
+    return ok
+
+
+def hhead_equal(h1: Hhead, h2: Hhead, **kwargs) -> bool:
+    """
+    Determine if two Hhead objects correspond to the same format, for the purposes of calibration.
+
+    Parameters
+    ----------
+    h1 : Hhead
+        First header object.
+    h2 : Hhead
+        Second header object.
+
+    Returns
+    -------
+    bool
+        True if the two headers correspond to the same format, False otherwise.
+    """
+    ok = (
+        (h1.xbin == h2.xbin)
+        and (h1.ybin == h2.ybin)
+        and len(h1.windows) == len(h2.windows)
+        # mode
+        and h1.header.get("ESO DET READ CURNAME", None)
+        == h2.header.get("ESO DET READ CURNAME", None)
+        # readout speed
+        and h1.header.get("ESO DET SPEED", None) == h2.header.get("ESO DET SPEED", None)
+    )
+    if ok:
+        # check windows are the same in all CCDs
+        ok = sorted(h1.wforms) == sorted(h2.wforms)
     return ok
 
 
@@ -104,6 +168,9 @@ def main():
     )
     args = parser.parse_args()
 
+    # choose comparison function
+    compare = hhead_equal if args.hcam else uhead_equal
+
     # accumulate a list of unique biases and non-biases
     nonbiases = {}
     biases = {}
@@ -120,21 +187,26 @@ def main():
             # compare with already stored formats
             new_format = True
             for _, rold in destination.items():
-                if uhead_equal(header, rold, fussy=args.fussy):
+                if compare(header, rold, fussy=args.fussy):
                     new_format = False
                     break
             if new_format:
-                destination[header.run] = header
+                key = header.fname if args.hcam else header.run
+                destination[key] = header
 
     # now see if each non-bias has a matching bias
     for run, nhead in nonbiases.items():
+        # skip data caution runs unless requested
         if not args.include_caution and nhead.header["DTYPE"].lower() == "data caution":
             continue
 
         has_bias = False
+        # loop over all unique bias formats looking for a match
         for _, bhead in biases.items():
-            if uhead_equal(nhead, bhead, fussy=args.fussy):
+            if compare(nhead, bhead, fussy=args.fussy):
                 has_bias = True
                 break
+
+        # no match for this run, report
         if not has_bias:
             print(f"No bias found for run {run} in format:")
