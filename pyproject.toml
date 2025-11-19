@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "hcam_obsutils"
-version = "0.0.2"
+version = "0.0.3"
 authors = [
   { name="Stuart Littlefair", email="s.littlefair@sheffield.ac.uk" },
   { name="Martin Dyer", email="m.j.dyer@sheffield.ac.uk" },
@@ -27,6 +27,7 @@ license-files = ["LICEN[CS]E*"]
 
 [project.scripts]
 missbias = "hcam_obsutils.scripts.missbias:main"
+unique = "hcam_obsutils.scripts.unique:main"
 
 [project.urls]
 Homepage = "https://github.com/hipercam/hcam_obsutils"
