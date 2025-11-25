@@ -51,7 +51,6 @@ def main():
     date, readout, binning = metadata(flat1)
     for nccd, ccd in flat1.items():
         for nwin, win in ccd.items():
-            """
             g = gain(
                 flat1,
                 flat2,
@@ -63,13 +62,13 @@ def main():
                 ymin=300,
                 ymax=400,
             )
-            """
             _, bias_level, rno = block_stats(bias[nccd][nwin].data)
 
             print("CCD{}, WIN{} ({} {})".format(nccd, nwin, readout, binning))
             print("======================================================")
             print("")
             print("  Bias level:    {:4.0f} ADU".format(bias_level))
-            print("  Read noise:    {:4.1f} e-".format(rno))
-            # print("  Gain:           {:4.1f} e-/ADU".format(g))
+            print("  Read noise:    {:4.1f} ADU".format(rno))
+            print("  Read noise:    {:4.1f} e-".format(rno / g))
+            print("  Gain:           {:4.1f} e-/ADU".format(g))
             print("")

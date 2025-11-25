@@ -89,10 +89,9 @@ def gain(
     variance = diff_win.std() ** 2
 
     # now measure mean signal level in each flat after bias subtraction
-    flat1_debias = flat1_win - bias
-    flat2_debias = flat2_win - bias
-    average_flat = 0.5 * (flat1_debias + flat2_debias)
-    av_win = select_region(average_flat, nccd, nwin, xmin, xmax, ymin, ymax)
+    flat1_debias = flat1_win - bias_win
+    flat2_debias = flat2_win - bias_win
+    av_win = 0.5 * (flat1_debias + flat2_debias)
     mean = av_win.mean()
 
     # now calculate gain in e-/ADU
