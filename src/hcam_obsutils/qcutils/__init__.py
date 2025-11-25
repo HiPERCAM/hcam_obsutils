@@ -12,7 +12,7 @@ from skimage.util import view_as_blocks
 
 
 def block_measure(
-    data: ArrayLike, block_size: int | ArrayLike[int] = 30, func: Callable = np.mean
+    data: ArrayLike, block_size: int | ArrayLike = 30, func: Callable = np.mean
 ):
     """
     Apply a function across blocks of an image.
