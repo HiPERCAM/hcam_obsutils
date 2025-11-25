@@ -48,7 +48,7 @@ def main():
     bias_name = args.bias if args.bias.endswith(".hcm") else args.bias + ".hcm"
     bias = hcam.MCCD.read(bias_name)
 
-    date, readout, binning = metadata(bias)
+    date, readout, binning = metadata(flat1)
     for nccd, ccd in flat1.items():
         for nwin, win in ccd.items():
             """
@@ -66,7 +66,7 @@ def main():
             """
             _, bias_level, rno = block_stats(bias[nccd][nwin].data)
 
-            print("CCD{}, WIN{} ({} {})".format(nccd, nwin, speed, binning))
+            print("CCD{}, WIN{} ({} {})".format(nccd, nwin, readout, binning))
             print("======================================================")
             print("")
             print("  Bias level:    {:4.0f} ADU".format(bias_level))
