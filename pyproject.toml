@@ -30,11 +30,12 @@ license = "MIT"
 license-files = ["LICEN[CS]E*"]
 
 
-
 [project.scripts]
 missbias = "hcam_obsutils.scripts.missbias:main"
 unique = "hcam_obsutils.scripts.unique:main"
-qc_ucam = "hcam_obsutils.scripts.ucam.qc.qc:main"
+ucam_qc = "hcam_obsutils.scripts.ucam.qc.qc:main"
+ucam_gain_simple = "hcam_obsutils.scripts.ucam.qc.gain_simple:main"
+ucam_gain = "hcam_obsutils.scripts.ucam.qc.gain:main"
 
 [project.urls]
 Homepage = "https://github.com/hipercam/hcam_obsutils"
