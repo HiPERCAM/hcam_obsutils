@@ -48,7 +48,7 @@ def main():
     bias_name = args.bias if args.bias.endswith(".hcm") else args.bias + ".hcm"
     bias = hcam.MCCD.read(bias_name)
 
-    date, readout, binning = metadata(flat1)
+    date, readout, binning = metadata(bias)
     for nccd, ccd in flat1.items():
         for nwin, win in ccd.items():
             """
