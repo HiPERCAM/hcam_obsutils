@@ -68,9 +68,10 @@ def gain(
     # helper to extract chunk of data we beed
     def select_region(mccd, nccd, nwin, xmin, xmax, ymin, ymax):
         win = mccd[nccd][nwin]
-        sub_win = win.window[
-            win.llx + xmin, win.llx + xmax, win.lly + ymin : win.lly + ymax
-        
+        sub_win = win.window(
+            win.llx + xmin, win.llx + xmax, win.lly + ymin, win.lly + ymax
+        )
+
         return sub_win
 
     # stats from bias
@@ -78,14 +79,14 @@ def gain(
     bias_val = bias_win.median()
     rno = bias_win.std()
 
-    # windows of flats 
+    # windows of flats
     flat1_win = select_region(flat1, nccd, nwin, xmin, xmax, ymin, ymax)
     flat2_win = select_region(flat2, nccd, nwin, xmin, xmax, ymin, ymax)
 
     # first measure variance in the difference between uncorrected flats
-    diff = flat1-flat2
+    diff = flat1 - flat2
     diff_win = select_region(diff, nccd, nwin, xmin, xmax, ymin, ymax)
-    variance = diff_win.std()**2
+    variance = diff_win.std() ** 2
 
     # now measure mean signal level in each flat after bias subtraction
     flat1_debias = flat1_win - bias
@@ -95,5 +96,5 @@ def gain(
     mean = av_win.mean()
 
     # now calculate gain in e-/ADU
-    gain =  1./((variance-(2.*(rno**2.)))/(2.*mean))
+    gain = 1.0 / ((variance - (2.0 * (rno**2.0))) / (2.0 * mean))
     return gain
