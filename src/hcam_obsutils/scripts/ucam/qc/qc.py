@@ -1,0 +1,82 @@
+import re
+import sys
+
+from hipercam import MCCD
+
+from hcam_obsutils.dbutils import add_bias_data, get_bias_data
+from hcam_obsutils.qcutils import (
+    bias_measurement_to_dataframe_row,
+    calc_and_plot,
+    plot_qc_bias_archive,
+)
+
+DBFILE = "/home/observer/qc/ultracam/ucam_qc.sqlite"
+ccd_lut = {"1": "red", "2": "grn", "3": "blu"}
+win_lut = {"1": "Left", "2": "Right"}
+
+
+def main():
+    # get inputs
+    if len(sys.argv) < 2:
+        fname = input("hcm file to analyse: ")
+    else:
+        fname = sys.argv[1]
+
+    if not fname.endswith(".hcm"):
+        fname = fname + ".hcm"
+
+    # read file
+    mccd = MCCD.read(fname)
+    # now determine the mean, median and standard deviation of each half of
+    # each CCD
+
+    # let's have some dictionaries
+    means = dict()
+    sigmas = dict()
+
+    # define box for average and sigma
+    ylow = 250
+    ystep = 400
+    ysize = 100
+    xleft = 100
+    xstep = 200
+    xsize = 100
+
+    for nccd, ccd in mccd.items():
+        if nccd not in means:
+            means[nccd] = dict()
+        if nccd not in sigmas:
+            sigmas[nccd] = dict()
+
+        for nwin, win in ccd.items():
+            mean, sd = calc_and_plot(
+                ccd, nccd, nwin, xleft, xstep, xsize, ylow, ystep, ysize
+            )
+            means[nccd][nwin] = mean
+            sigmas[nccd][nwin] = sd
+
+    # get metadata on read noise, time etc.
+    # get metadata from data
+    if mccd.head["GAINSPED"] == "cdd":
+        readout = "SLOW"
+    elif mccd.head["GAINSPED"] == "fbb":
+        readout = "FAST"
+    else:
+        readout = "TURBO"
+
+    date = mccd.head["TIMSTAMP"].split("T")[0]
+    binning = "%dx%d" % (mccd["1"]["1"].xbin, mccd["1"]["1"].ybin)
+
+    bias_df = get_bias_data(DBFILE).sort_values(by=["date"])
+    resp = input("do you want to compare these results with archival values?: ")
+    if re.match("Y", resp.upper()):
+        plot_qc_bias_archive(
+            date, binning, readout, ccd_lut, win_lut, means, sigmas, bias_df
+        )
+
+    resp = input("do you want to add these results to the quality control database?: ")
+    if re.match("Y", resp.upper()):
+        row = bias_measurement_to_dataframe_row(
+            date, binning, ccd_lut, win_lut, readout, means, sigmas
+        )
+        add_bias_data(bias_df, row)

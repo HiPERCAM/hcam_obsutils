@@ -33,6 +33,7 @@ license-files = ["LICEN[CS]E*"]
 [project.scripts]
 missbias = "hcam_obsutils.scripts.missbias:main"
 unique = "hcam_obsutils.scripts.unique:main"
+qc_ucam = "hcam_obsutils.scripts.ucam.qc.qc:main"
 
 [project.urls]
 Homepage = "https://github.com/hipercam/hcam_obsutils"
