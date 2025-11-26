@@ -87,4 +87,4 @@ def main():
         row = bias_measurement_to_dataframe_row(
             date, mode, ccd_lut, win_lut, means, sigmas
         )
-        add_bias_data(bias_df, row)
+        add_bias_data(DBFILE, bias_df, row)
