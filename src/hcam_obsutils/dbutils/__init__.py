@@ -5,6 +5,16 @@ import pandas as pd
 from ..qcutils import ReadoutMode
 
 
+def remove_duplicate_rows(df: pd.DataFrame, other_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Remove rows that already exist in the database from the dataframe
+    """
+    df = pd.merge(df, other_df, how="left", indicator=True)
+    df = df[df["_merge"] == "left_only"]
+    df.drop(["_merge"], axis=1, inplace=True)
+    return df
+
+
 def get_bias_data(dbfile: str, mode: ReadoutMode | None = None) -> pd.DataFrame:
     if mode is None:
         query = "SELECT * from bias"
@@ -17,9 +27,11 @@ def get_bias_data(dbfile: str, mode: ReadoutMode | None = None) -> pd.DataFrame:
 
 
 def add_bias_data(dbfile: str, df: pd.DataFrame, row: dict) -> None:
+    old_df = df.copy()
     df.loc[len(df)] = row
+    df = remove_duplicate_rows(df, old_df)
     with sqlite3.connect(dbfile) as conn:
-        df.to_sql("bias", conn, if_exists="replace")
+        df.to_sql("bias", conn, if_exists="append")
 
 
 def get_gain_data(dbfile: str, mode: ReadoutMode | None = None) -> pd.DataFrame:
@@ -34,6 +46,8 @@ def get_gain_data(dbfile: str, mode: ReadoutMode | None = None) -> pd.DataFrame:
 
 
 def add_gain_data(dbfile: str, df: pd.DataFrame, row: dict) -> None:
+    old_df = df.copy()
     df.loc[len(df)] = row
+    df = remove_duplicate_rows(df, old_df)
     with sqlite3.connect(dbfile) as conn:
-        df.to_sql("gain", conn, if_exists="replace")
+        df.to_sql("gain", conn, if_exists="append")
