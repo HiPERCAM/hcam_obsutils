@@ -23,12 +23,17 @@ class UspecReadoutMode(ReadoutMode):
     output: str
     hvgain: int
 
-def main():
+def main(args=None):
+    from trm import cline
+    from trm.cline import Cline
+
     # get inputs
-    if len(sys.argv) < 2:
-        fname = input("hcm file to analyse: ")
-    else:
-        fname = sys.argv[1]
+    command, args = cline.script_args(args)
+    with Cline("HIPERCAM_ENV", ".hipercam", command, args) as cl:
+        cl.register("fname", Cline.LOCAL, Cline.PROMPT)
+        fname = cl.get_value(
+            "fname", "hcam file to analyse:", cline.Fname("hcam", HCAM)
+        )
 
     if not fname.endswith(".hcm"):
         fname = fname + ".hcm"
