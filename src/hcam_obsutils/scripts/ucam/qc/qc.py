@@ -80,9 +80,7 @@ def main():
     bias_df = get_bias_data(DBFILE, mode).sort_values(by=["date"])
     resp = input("do you want to compare these results with archival values?: ")
     if re.match("Y", resp.upper()):
-        plot_qc_bias_archive(
-            date, binning, readout, ccd_lut, win_lut, means, sigmas, bias_df
-        )
+        plot_qc_bias_archive(date, mode, ccd_lut, win_lut, means, sigmas, bias_df)
 
     resp = input("do you want to add these results to the quality control database?: ")
     if re.match("Y", resp.upper()):
