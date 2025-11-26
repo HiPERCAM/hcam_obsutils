@@ -305,39 +305,31 @@ def plot_qc_bias_archive(
         print("")
         print("Number of values in archive = ", bias.size)
         print(
-            "Archival last recorded (bias, rno) value = {}, {}".format(
-                bias.iloc[-1], rno.iloc[-1]
-            )
+            f"Archival last recorded (bias, rno) value = {bias.iloc[-1]:.1f}, {rno.iloc[-1]:.2f}"
+        )
+        print(f"Archival minimum (bias,rno) value = {bias.min():.1f}, {rno.min():.2f}")
+        print(
+            f"Archival maximum (bias,rno) value = {bias.max():.1f}, {rno.max():.2f}"
+        )
+        print(f"Archival mean (bias,rno) value = {bias.mean():.1f}, {rno.mean():.2f}")
+        print(
+            f"Archival standard deviation of (bias,rno) = {bias.std():.1f}, {rno.std():.2f}"
         )
         print(
-            "Archival minimum (bias,rno) value = {}, {}".format(bias.min(), rno.min())
+            f"Archival median (bias,rno) value = {bias.median():.1f}, {rno.median():.2f}"
         )
-        print(
-            "Archival maximum (bias,rno) value = {}, {}".format(bias.max(), rno.max())
-        )
-        print("Archival mean (bias,rno) value = {}, {}".format(bias.mean(), rno.mean()))
-        print(
-            "Archival standard deviation of (bias,rno) = {}, {}".format(
-                bias.std(), rno.std()
-            )
-        )
-        print(
-            "Archival median (bias,rno) value = {}, {}".format(
-                bias.median(), rno.median()
-            )
         )
         bold = "\033[1m"
         reset = "\033[0;0m"
         print(
             bold
-            + "Current median (bias,rno) value = {}, {}".format(
-                current_bias, current_rno
-            )
+            + f"Current median (bias,rno) value = {current_bias:.1f}, {current_rno:.2f}"
             + reset
         )
         print("")
 
     bias_axis.set_ylabel("Bias (counts)")
+    bias_lims = bias.median() + np.array([-2, 2]) * bias.std()
     bias_axis.text(
         bias.size + 1,
         2000,
@@ -347,8 +339,11 @@ def plot_qc_bias_archive(
         verticalalignment="center",
         fontsize=8,
     )
+    bias_axis.set_ylim(*bias_lims)
+
     rno_axis.set_xlabel("Quality control archive entry number")
     rno_axis.set_ylabel("Readout noise (counts)")
+    rno_lims = rno.median() + np.array([-2, 2]) * rno.std()
     rno_axis.text(
         rno.size + 1,
         3.3,
@@ -358,6 +353,6 @@ def plot_qc_bias_archive(
         verticalalignment="center",
         fontsize=8,
     )
-
+    rno_axis.set_ylim(*rno_lims)
     plt.show()
     return
