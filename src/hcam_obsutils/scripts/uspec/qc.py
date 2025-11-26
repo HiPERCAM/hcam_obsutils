@@ -1,7 +1,6 @@
-import dataclasses
 import re
 import sys
-
+import dataclasses
 from hipercam import MCCD
 
 from hcam_obsutils.dbutils import add_bias_data, get_bias_data
@@ -9,19 +8,20 @@ from hcam_obsutils.qcutils import (
     ReadoutMode,
     bias_measurement_to_dataframe_row,
     calc_and_plot,
-    plot_qc_bias_archive,
+    plot_qc_bias_archive,,
+    ReadoutMode,
 )
 
-DBFILE = "/home/observer/qc/ultracam/ucam_qc.sqlite"
-ccd_lut = {"1": "red", "2": "grn", "3": "blu"}
-win_lut = {"1": "Left", "2": "Right"}
-
+DBFILE = "/home/observer/qc/ultraspec/uspec_qc.sqlite"
+ccd_lut = {"1": "ccd"}
+win_lut = {"1": "1"}
 
 @dataclasses.dataclass
-class UCAMReadoutMode(ReadoutMode):
+class UspecReadoutMode(ReadoutMode):
     binning: str
-    readout: str
-
+    speed: str
+    output: str
+    hvgain: int
 
 def main():
     # get inputs
@@ -42,14 +42,41 @@ def main():
     means = dict()
     sigmas = dict()
 
-    # define box for average and sigma
-    ylow = 250
-    ystep = 400
-    ysize = 100
-    xleft = 100
-    xstep = 200
-    xsize = 100
+    # get metadata on read noise, time etc.
+    date = mccd.head["TIMSTAMP"].split("T")[0]
+    binning = "%dx%d" % (mccd["1"]["1"].xbin, mccd["1"]["1"].ybin)
+    output = mccd.head["OUTPUT"]
+    speed = mccd.head["SPEED"]
+    if output == "N":
+        coutput = "NORMAL OUTPUT"
+    else:
+        coutput = "AVALANCHE OUTPUT"
 
+    if speed == "F":
+        cspeed = "FAST READOUT SPEED"
+    elif speed == "M":
+        cspeed = "MEDIUM READOUT SPEED"
+    else:
+        cspeed = "SLOW READOUT SPEED"
+    hvgain = mccd.head["HVGAIN"]
+
+    if output == "N":
+        title = f"ULTRASPEC, {cspeed}, {coutput}"
+    else:
+        title = f"ULTRASPEC, {cspeed}, {coutput}, HVGAIN={hvgain}"
+
+    mode = UspecReadoutMode(
+        binning=binning, speed=speed, output=output, hvgain=hvgain
+    )
+    print(title)
+
+    # define statistics region
+    ylow = 100
+    ystep = 400
+    ysize = 200
+    xleft = 200
+    xstep = 400
+    xsize = 200
     for nccd, ccd in mccd.items():
         if nccd not in means:
             means[nccd] = dict()
@@ -64,24 +91,11 @@ def main():
             means[nccd][nwin] = mean
             sigmas[nccd][nwin] = sd
 
-    # get metadata on read noise, time etc.
-    # get metadata from data
-    if mccd.head["GAINSPED"] == "cdd":
-        readout = "SLOW"
-    elif mccd.head["GAINSPED"] == "fbb":
-        readout = "FAST"
-    else:
-        readout = "TURBO"
-
-    date = mccd.head["TIMSTAMP"].split("T")[0]
-    binning = "%dx%d" % (mccd["1"]["1"].xbin, mccd["1"]["1"].ybin)
-    mode = UCAMReadoutMode(binning=binning, readout=readout)
-
     bias_df = get_bias_data(DBFILE, mode).sort_values(by=["date"])
     resp = input("do you want to compare these results with archival values?: ")
     if re.match("Y", resp.upper()):
         plot_qc_bias_archive(
-            date, binning, readout, ccd_lut, win_lut, means, sigmas, bias_df
+            date, mode, ccd_lut, win_lut, means, sigmas, bias_df
         )
 
     resp = input("do you want to add these results to the quality control database?: ")

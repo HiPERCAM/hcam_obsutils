@@ -1,3 +1,4 @@
+import dataclasses
 from typing import Callable
 
 import numpy as np
@@ -9,6 +10,31 @@ from matplotlib import pyplot as plt
 from matplotlib.patches import Rectangle
 from numpy.typing import ArrayLike
 from skimage.util import view_as_blocks
+
+
+# abstract base class for readout modes
+class ReadoutMode:
+    def asdict(self) -> dict:
+        """
+        Convert the ReadoutMode to a dictionary.
+
+        Used for constructing a dataframe row
+        """
+        return dataclasses.asdict(self)
+
+    def query_string(self) -> str:
+        """
+        Create an SQL query string from the ReadoutMode.
+
+        Used for querying the database for rows matching this readout mode.
+        """
+        clauses = []
+        for field, value in self.asdict().items():
+            if isinstance(value, str):
+                clauses.append(f"{field}='{value}'")
+            else:
+                clauses.append(f"{field}={value}")
+        return " AND ".join(clauses)
 
 
 def block_measure(
@@ -88,6 +114,7 @@ def calc_and_plot(
     ccd: CCD,
     nccd: str,
     nwin: str,
+    window_name: str,
     xleft: int,
     xstep: int,
     xsize: int,
@@ -106,6 +133,8 @@ def calc_and_plot(
         The CCD number as a string.
     nwin: int
         The window number of CCD
+    window_name : str
+        The name of the window being analysed.
     xleft : int
         The left x-coordinate of the first patch.
     xstep : int
@@ -119,11 +148,6 @@ def calc_and_plot(
     ysize : int
         The size in y of each patch.
     """
-
-    if nwin == "1":
-        win = "L"
-    else:
-        win = "R"
     window = ccd[nwin]
 
     meanList = []
@@ -163,9 +187,10 @@ def calc_and_plot(
     mean = np.mean(meanList)
     sd = np.mean(sdList)
     median = np.mean(medianList)
-    print("CCD%s %s mean   = %5.0f" % (nccd, win, mean))
-    print("CCD%s %s median   = %5.0f" % (nccd, win, median))
-    print("CCD%s %s sigma  = %4.1f" % (nccd, win, sd))
+    print(f"CCD{nccd} {window_name} mean   = {mean:5.0f}")
+    print(f"CCD{nccd} {window_name} median = {median:5.0f}")
+    print(f"CCD{nccd} {window_name} sigma  = {sd:4.1f}")
+    print("")
 
     # and plot them at high contrast to check for pickup noise
     fig, axes = plt.subplots()
@@ -186,8 +211,7 @@ def calc_and_plot(
 
 def bias_measurement_to_dataframe_row(
     date: str,
-    binning: int,
-    readout: str,
+    readout_mode: ReadoutMode,
     ccd_lut: dict[str, str],
     win_lut: dict[str, str],
     means: dict[str, dict[str, float]],
@@ -200,10 +224,8 @@ def bias_measurement_to_dataframe_row(
     ----------
     date : str
         The current date as a string.
-    binning : int
-        The current binning factor.
-    readout : str
-        The current readout speed.
+    readout_mode : ReadoutMode
+        The readout mode used for the measurement.
     ccd_lut : dict[str, str]
         The CCD lookup table mapping CCD numbers to names.
     win_lut : dict[str, str]
@@ -216,7 +238,8 @@ def bias_measurement_to_dataframe_row(
         The sigmas for each CCD and window.
         Same structure as means.
     """
-    row = dict(readout=readout, date=date, binning=binning)
+    row = dict(date=date)
+    row.update(readout_mode.asdict())
     for iccd, ccdmeans in means.items():
         for iwin, winmean in ccdmeans.items():
             ccd = ccd_lut[iccd]
@@ -229,8 +252,7 @@ def bias_measurement_to_dataframe_row(
 
 def plot_qc_bias_archive(
     date: str,
-    binning: int,
-    readout: str,
+    readout_mode: ReadoutMode,
     ccd_lut: dict[str, str],
     win_lut: dict[str, str],
     means: dict[str, dict[str, float]],
@@ -244,10 +266,8 @@ def plot_qc_bias_archive(
     ----------
     date : str
         The current date as a string.
-    binning : int
-        The current binning factor.
-    readout : str
-        The current readout speed.
+    readout_mode : ReadoutMode
+        The readout mode used for the current measurement.
     ccd_lut : dict[str, str]
         The CCD lookup table mapping CCD numbers to names.
     win_lut : dict[str, str]
@@ -267,11 +287,7 @@ def plot_qc_bias_archive(
     print("\n\n")
     for iccd, ccdmeans in means.items():
         for iwin, winmean in ccdmeans.items():
-            print(
-                "{} readout speed, {} binning, {} CCD, {} channel".format(
-                    readout, binning, ccd_lut[iccd], win_lut[iwin].lower()
-                )
-            )
+            print("{} CCD, {} channel".format(ccd_lut[iccd], win_lut[iwin].lower()))
 
             bias = bias_df["{}{}Mean".format(ccd_lut[iccd], win_lut[iwin])]
             rno = bias_df["{}{}Sigma".format(ccd_lut[iccd], win_lut[iwin])]
