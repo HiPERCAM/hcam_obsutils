@@ -308,9 +308,7 @@ def plot_qc_bias_archive(
             f"Archival last recorded (bias, rno) value = {bias.iloc[-1]:.1f}, {rno.iloc[-1]:.2f}"
         )
         print(f"Archival minimum (bias,rno) value = {bias.min():.1f}, {rno.min():.2f}")
-        print(
-            f"Archival maximum (bias,rno) value = {bias.max():.1f}, {rno.max():.2f}"
-        )
+        print(f"Archival maximum (bias,rno) value = {bias.max():.1f}, {rno.max():.2f}")
         print(f"Archival mean (bias,rno) value = {bias.mean():.1f}, {rno.mean():.2f}")
         print(
             f"Archival standard deviation of (bias,rno) = {bias.std():.1f}, {rno.std():.2f}"
@@ -318,7 +316,7 @@ def plot_qc_bias_archive(
         print(
             f"Archival median (bias,rno) value = {bias.median():.1f}, {rno.median():.2f}"
         )
-        )
+
         bold = "\033[1m"
         reset = "\033[0;0m"
         print(
