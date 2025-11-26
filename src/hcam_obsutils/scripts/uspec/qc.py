@@ -32,7 +32,7 @@ def main(args=None):
     with Cline("HIPERCAM_ENV", ".hipercam", command, args) as cl:
         cl.register("fname", Cline.LOCAL, Cline.PROMPT)
         fname = cl.get_value(
-            "fname", "hcam file to analyse:", cline.Fname("hcam", HCAM)
+            "fname", "hcam file to analyse:", cline.Fname("bias", HCAM)
         )
 
     if not fname.endswith(".hcm"):

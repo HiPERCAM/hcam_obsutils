@@ -4,13 +4,6 @@ import numpy as np
 from hcam_obsutils.qcutils import block_stats
 from hcam_obsutils.qcutils.gain import gain
 
-HELP = """
-Python script to measure ULTRACAM gain in a quick and dirty manner.
-
-The two flats should have different mean count levels.
-Flat fields will be bias subtracted, so you also have to supply a bias frame
-"""
-
 
 def metadata(mccd):
     # get metadata from data
@@ -26,26 +19,46 @@ def metadata(mccd):
     return date, readout, binning
 
 
-def main():
-    import argparse
+def main(args=None):
+    """
+    Python script to measure ULTRACAM gain in a quick and dirty manner.
 
-    parser = argparse.ArgumentParser(
-        description=HELP, formatter_class=argparse.RawTextHelpFormatter
-    )
-    parser.add_argument(
-        "flat1",
-        type=str,
-        help="First flat field hcm file (should not be bias subtracted)",
-    )
-    parser.add_argument("flat2", type=str, help="Second flat field hcm file")
-    parser.add_argument("bias", type=str, help="Bias frame hcm file")
-    args = parser.parse_args()
+    The two flats should have different mean count levels.
+    Flat fields will be bias subtracted, so you also have to supply a bias frame
 
-    flat1_name = args.flat1 if args.flat1.endswith(".hcm") else args.flat1 + ".hcm"
+    Parameters
+    ----------
+    flat1 : str
+        First flat field hcm file (should not be bias subtracted)
+    flat2 : str
+        Second flat field hcm file
+    bias : str
+        Bias frame hcm file
+    """
+    from trm import cline
+    from trm.cline import Cline
+
+    # get inputs
+    command, args = cline.script_args(args)
+    with Cline("HIPERCAM_ENV", ".hipercam", command, args) as cl:
+        cl.register("flat1", Cline.LOCAL, Cline.PROMPT)
+        cl.register("flat2", Cline.LOCAL, Cline.PROMPT)
+        cl.register("bias", Cline.LOCAL, Cline.PROMPT)
+
+        flat1_name = cl.get_value(
+            "flat1",
+            "First flat field hcm file (should not be bias subtracted):",
+            cline.Fname("flat1", hcam.HCAM),
+        )
+        flat2_name = cl.get_value(
+            "flat2", "Second flat field hcm file:", cline.Fname("flat2", hcam.HCAM)
+        )
+        bias_name = cl.get_value(
+            "bias", "Bias frame hcm file:", cline.Fname("bias", hcam.HCAM)
+        )
+
     flat1 = hcam.MCCD.read(flat1_name)
-    flat2_name = args.flat2 if args.flat2.endswith(".hcm") else args.flat2 + ".hcm"
     flat2 = hcam.MCCD.read(flat2_name)
-    bias_name = args.bias if args.bias.endswith(".hcm") else args.bias + ".hcm"
     bias = hcam.MCCD.read(bias_name)
 
     date, readout, binning = metadata(flat1)

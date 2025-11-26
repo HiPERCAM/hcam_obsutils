@@ -5,34 +5,28 @@ from matplotlib.patches import Rectangle
 from hcam_obsutils.qcutils.gain import gain_simple
 
 
-def main():
-    import readline
-    import sys
-
-    readline.parse_and_bind("tab: complete")
+def main(args=None):
+    from trm import cline
+    from trm.cline import Cline
 
     # get inputs
-    if len(sys.argv) < 2:
-        fname = input("hcm file containing flat: ")
-    else:
-        fname = sys.argv[1]
+    command, args = cline.script_args(args)
+    with Cline("HIPERCAM_ENV", ".hipercam", command, args) as cl:
+        cl.register("flat", Cline.LOCAL, Cline.PROMPT)
+        cl.register("bias", Cline.LOCAL, Cline.PROMPT)
 
-    if not fname.endswith(".hcm"):
-        fname = fname + ".hcm"
+        flat_name = cl.get_value(
+            "flat",
+            "Flat field hcm file (should not be bias subtracted):",
+            cline.Fname("flat1", hcam.HCAM),
+        )
+        bias_name = cl.get_value(
+            "bias", "Bias frame hcm file:", cline.Fname("bias", hcam.HCAM)
+        )
 
-    # read file
-    flat = hcam.MCCD.read(fname)
-
-    if len(sys.argv) < 3:
-        fname = input("hcm file containing bias: ")
-    else:
-        fname = sys.argv[2]
-
-    if not fname.endswith(".hcm"):
-        fname = fname + ".hcm"
-
-    # read file
-    bias = hcam.MCCD.read(fname)
+    # read files
+    flat = hcam.MCCD.read(flat_name)
+    bias = hcam.MCCD.read(bias_name)
 
     # now subtract the bias, determine the mean and standard deviation and then
     # the gain
