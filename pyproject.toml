@@ -21,6 +21,8 @@ dependencies = [
   "scipy",
   "trm.cline",
   "scikit-image",
+  "thefuzz",
+  "sigfig"
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -36,6 +38,7 @@ unique = "hcam_obsutils.scripts.unique:main"
 ucam_qc = "hcam_obsutils.scripts.ucam.qc.qc:main"
 ucam_gain_simple = "hcam_obsutils.scripts.ucam.qc.gain_simple:main"
 ucam_gain = "hcam_obsutils.scripts.ucam.qc.gain:main"
+ucam_zeropoints = "hcam_obsutils.scripts.ucam.ucam_zeropoints:main"
 
 [project.urls]
 Homepage = "https://github.com/hipercam/hcam_obsutils"
