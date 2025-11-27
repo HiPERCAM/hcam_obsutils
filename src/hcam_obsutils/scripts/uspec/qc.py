@@ -1,20 +1,20 @@
-import re
-import sys
 import dataclasses
-from hipercam import MCCD
+import re
+
+from hipercam import HCAM, MCCD
 
 from hcam_obsutils.dbutils import add_bias_data, get_bias_data
 from hcam_obsutils.qcutils import (
     ReadoutMode,
     bias_measurement_to_dataframe_row,
     calc_and_plot,
-    plot_qc_bias_archive,,
-    ReadoutMode,
+    plot_qc_bias_archive,
 )
 
 DBFILE = "/home/observer/qc/ultraspec/uspec_qc.sqlite"
 ccd_lut = {"1": "ccd"}
 win_lut = {"1": "1"}
+
 
 @dataclasses.dataclass
 class UspecReadoutMode(ReadoutMode):
@@ -22,6 +22,7 @@ class UspecReadoutMode(ReadoutMode):
     speed: str
     output: str
     hvgain: int
+
 
 def main(args=None):
     from trm import cline
@@ -70,9 +71,7 @@ def main(args=None):
     else:
         title = f"ULTRASPEC, {cspeed}, {coutput}, HVGAIN={hvgain}"
 
-    mode = UspecReadoutMode(
-        binning=binning, speed=speed, output=output, hvgain=hvgain
-    )
+    mode = UspecReadoutMode(binning=binning, speed=speed, output=output, hvgain=hvgain)
     print(title)
 
     # define statistics region
@@ -99,9 +98,7 @@ def main(args=None):
     bias_df = get_bias_data(DBFILE, mode).sort_values(by=["date"])
     resp = input("do you want to compare these results with archival values?: ")
     if re.match("Y", resp.upper()):
-        plot_qc_bias_archive(
-            date, mode, ccd_lut, win_lut, means, sigmas, bias_df
-        )
+        plot_qc_bias_archive(date, mode, ccd_lut, win_lut, means, sigmas, bias_df)
 
     resp = input("do you want to add these results to the quality control database?: ")
     if re.match("Y", resp.upper()):

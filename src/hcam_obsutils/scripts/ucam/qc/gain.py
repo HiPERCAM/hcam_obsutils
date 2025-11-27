@@ -1,5 +1,4 @@
 import hipercam as hcam
-import numpy as np
 
 from hcam_obsutils.qcutils import block_stats
 from hcam_obsutils.qcutils.gain import gain
