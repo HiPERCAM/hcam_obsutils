@@ -109,7 +109,7 @@ class Calibrator:
 
         self.instrument = instrument.lower()
         if self.instrument == "ultracam":
-            self.band_to_ccd = {"u": "1", "g": "2", "r": "3", "i": "3", "z": "3"}
+            self.band_to_ccd = {"u": "3", "g": "2", "r": "1", "i": "1", "z": "1"}
         elif self.instrument == "ultraspec":
             self.band_to_ccd = {"u": "1", "g": "1", "r": "1", "i": "1", "z": "1"}
         else:
