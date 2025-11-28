@@ -100,7 +100,7 @@ class Calibrator:
         instrument: str,
         std_name: str,
         std_logfile: str,
-        observatory: str,
+        observatory: str | coord.EarthLocation,
         comp_logfile: str | None = None,
         coords: coord.SkyCoord | None = None,
     ):
@@ -119,7 +119,10 @@ class Calibrator:
         self.std_logfile = std_logfile
         self.comp_logfile = comp_logfile
         self.coords = coords
-        self.observatory = coord.EarthLocation.of_site(observatory)
+        if isinstance(observatory, str):
+            self.observatory = coord.EarthLocation.of_site(observatory)
+        else:
+            self.observatory = observatory
 
         if self.comp_logfile is not None and self.coords is None:
             raise ValueError("If comp_logfile is given, coords must also be provided.")
@@ -240,5 +243,4 @@ class Calibrator:
         zp_mean, zp_median, zp_err = self.get_zeropoint(band)
         print(f"Zeropoint ({band}): {zp_mean:.3f} {zp_median:.3f} {zp_err:.3f}")
         comp_mags = inst_comp + zp_median
-        return sigma_clipped_stats(comp_mags)
         return sigma_clipped_stats(comp_mags)
