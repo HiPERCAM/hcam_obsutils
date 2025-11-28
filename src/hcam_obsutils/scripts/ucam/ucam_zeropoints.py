@@ -51,7 +51,9 @@ def main(args=None):
             warnings.simplefilter("ignore")
             mean_zp, median_zp, std_zp = calibrator.get_zeropoint(band)
             print(f"Band {band}: ZP = {sigfig_round(mean_zp, std_zp)}")
-            results.append(dict(date=date, band=band, mean=mean_zp, err=std_zp))
+            results.append(
+                dict(date=date, stdname=stdname, band=band, mean=mean_zp, err=std_zp)
+            )
 
     try:
         df = get_zeropoint_data(DBFILE)
