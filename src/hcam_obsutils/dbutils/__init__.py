@@ -15,6 +15,31 @@ def remove_duplicate_rows(df: pd.DataFrame, other_df: pd.DataFrame) -> pd.DataFr
     return df
 
 
+def create_zeropoint_table(dbfile: str, initial_row: dict) -> None:
+    df = pd.DataFrame([initial_row])
+    with sqlite3.connect(dbfile) as conn:
+        df.to_sql("zeropoint", conn, if_exists="replace")
+
+
+def get_zeropoint_data(dbfile: str, band: str | None = None) -> pd.DataFrame:
+    if band is None:
+        query = "SELECT * from zeropoint"
+    else:
+        query = f"SELECT * from zeropoint WHERE band=='{band}'"
+    with sqlite3.connect(dbfile) as conn:
+        data = pd.read_sql_query(query, conn)
+    # drop SQL index column
+    return data.drop("index", axis=1)
+
+
+def add_zeropoint_data(dbfile: str, df: pd.DataFrame, row: dict) -> None:
+    old_df = df.copy()
+    df.loc[len(df)] = row
+    df = remove_duplicate_rows(df, old_df)
+    with sqlite3.connect(dbfile) as conn:
+        df.to_sql("zeropoint", conn, if_exists="append")
+
+
 def get_bias_data(dbfile: str, mode: ReadoutMode | None = None) -> pd.DataFrame:
     if mode is None:
         query = "SELECT * from bias"

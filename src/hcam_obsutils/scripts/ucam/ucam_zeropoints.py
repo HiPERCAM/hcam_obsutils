@@ -1,6 +1,14 @@
-from hipercam.hlog import Hlog
+import re
 
+from hcam_obsutils.dbutils import (
+    add_zeropoint_data,
+    create_zeropoint_table,
+    get_zeropoint_data,
+)
+from hcam_obsutils.qcutils import plot_zeropoint_data
 from hcam_obsutils.throughput import Calibrator
+
+DBFILE = "/home/observer/qc/ultracam/ucam_qc.sqlite"
 
 
 def main(args=None):
@@ -36,8 +44,28 @@ def main(args=None):
 
     calibrator = Calibrator("ultracam", stdname, logfile, "lasilla")
 
+    date = calibrator.date.isot.split("T")[0]
+    results = []
     for band in bands:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             mean_zp, median_zp, std_zp = calibrator.get_zeropoint(band)
             print(f"Band {band}: ZP = {sigfig_round(mean_zp, std_zp)}")
+            results.append(dict(date=date, band=band, mean=mean_zp, err=std_zp))
+
+    try:
+        df = get_zeropoint_data(DBFILE)
+    except Exception:
+        # create table
+        initial_row = results[0]
+        create_zeropoint_table(DBFILE, initial_row)
+        df = get_zeropoint_data(DBFILE)
+
+    resp = input("do you want to compare these results with archival values?: ")
+    if re.match("Y", resp.upper()):
+        plot_zeropoint_data(df, bands, results)
+
+    resp = input("do you want to add these results to the quality control database?: ")
+    if re.match("Y", resp.upper()):
+        for row in results:
+            add_zeropoint_data(DBFILE, df, row)

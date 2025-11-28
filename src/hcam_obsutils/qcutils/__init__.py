@@ -4,6 +4,8 @@ from typing import Callable
 import numpy as np
 import pandas as pd
 from astropy.stats import sigma_clip, sigma_clipped_stats
+from astropy.time import Time
+from astropy.visualization import time_support
 from hipercam import mpl
 from hipercam.ccd import CCD
 from matplotlib import pyplot as plt
@@ -354,3 +356,41 @@ def plot_qc_bias_archive(
     rno_axis.set_ylim(*rno_lims)
     plt.show()
     return
+
+
+def plot_zeropoint_data(
+    df: pd.DataFrame, bands: list[str], results: list[dict]
+) -> None:
+    df = df.sort_values("date")
+    _, ax = plt.subplots()
+
+    # make a dictionary of band vs colour for all bands
+    time_support(format="iso")
+    band_color_dict = {band: color for band, color in zip(bands, plt.cm.tab10.colors)}
+    for band in bands:
+        # plot archival data
+        band_data = df[df["band"] == band]
+        x = Time(band_data["date"].to_list())
+
+        plt.scatter(
+            x, band_data["mean"], marker=".", color=band_color_dict[band], label=band
+        )
+        mn, md, sd = sigma_clipped_stats(band_data["mean"])
+        print(f"Band {band}: Archival mean ZP {mn:.2f} (SD = {sd:.2f})")
+
+    # plot current result
+    current_df = pd.DataFrame(results)
+    for band in bands:
+        band_data = current_df[current_df["band"] == band]
+        x = Time(band_data["date"].to_list())
+        plt.scatter(
+            x,
+            band_data["mean"],
+            marker="o",
+            color=band_color_dict[band],
+            edgecolor="black",
+        )
+    plt.legend()
+    plt.xlabel("Date")
+    plt.ylabel("Zeropoint")
+    plt.show()
