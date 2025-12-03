@@ -66,5 +66,3 @@ def main(args=None):
     if re.match("Y", resp.upper()):
         for row in results:
             add_zeropoint_data(DBFILE, df, row)
-        for row in results:
-            add_zeropoint_data(DBFILE, df, row)
