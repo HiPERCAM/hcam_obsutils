@@ -30,7 +30,7 @@ def main():
         "--hcam",
         action="store_true",
         default=False,
-        help="process HiPERCAM runs rather than ULTRASPEC and/or ULTRACAMruns",
+        help="process HiPERCAM runs rather than ULTRASPEC and/or ULTRACAM runs",
     )
     parser.add_argument(
         "dirs",
@@ -80,4 +80,6 @@ def main():
 
         # no match for this run, report
         if not has_bias:
-            print(f"No bias found for run {run} in format:")
+            print(
+                f"No bias found for {run} in format: {nhead.mode} {nhead.xbin}x{nhead.ybin} {nhead.wforms}"
+            )
