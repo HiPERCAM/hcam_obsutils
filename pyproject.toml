@@ -39,6 +39,8 @@ ucam_qc = "hcam_obsutils.scripts.ucam.qc.qc:main"
 ucam_gain_simple = "hcam_obsutils.scripts.ucam.qc.gain_simple:main"
 ucam_gain = "hcam_obsutils.scripts.ucam.qc.gain:main"
 ucam_zeropoints = "hcam_obsutils.scripts.ucam.ucam_zeropoints:main"
+uspec_zeropoints = "hcam_obsutils.scripts.uspec.uspec_zeropoints:main"
+hcam_zeropoints = "hcam_obsutils.scripts.hcam.hcam_zeropoints:main"
 
 [project.urls]
 Homepage = "https://github.com/hipercam/hcam_obsutils"
