@@ -21,7 +21,7 @@ def main():
         "--hcam",
         action="store_true",
         default=False,
-        help="process HiPERCAM runs rather than ULTRASPEC and/or ULTRACAMruns",
+        help="process HiPERCAM runs rather than ULTRASPEC and/or ULTRACAM runs",
     )
     parser.add_argument(
         "dirs",
