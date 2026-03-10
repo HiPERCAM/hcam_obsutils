@@ -1,16 +1,16 @@
+import os
 import re
+from pathlib import Path
 
 from astropy.coordinates import EarthLocation
 
-from hcam_obsutils.dbutils import (
-    add_zeropoint_data,
-    create_zeropoint_table,
-    get_zeropoint_data,
-)
+from hcam_obsutils.dbutils import (add_zeropoint_data, create_zeropoint_table,
+                                   get_zeropoint_data)
 from hcam_obsutils.qcutils import plot_zeropoint_data
 from hcam_obsutils.throughput import Calibrator
 
-DBFILE = "/home/observer/qc/ultraspec/uspec_qc.sqlite"
+DB_LOCATION = Path(os.getenv("HCAM_QC_DBLOC", "/home/observer/qc"))
+DBFILE = DB_LOCATION / "ultraspec" / "uspec_qc.sqlite"
 
 
 def main(args=None):
@@ -34,10 +34,6 @@ def main(args=None):
         )
         stdname = cl.get_value("stdname", "Name of the standard star:", "stdname")
         band = cl.get_value("band", "band", "g")
-
-    if band.lower() == "kg5":
-        print("Zeropoints for KG5 band not currently supported.")
-        return
 
     TNT = EarthLocation(lat=18.574, lon=98.482, height=2449.0)
     calibrator = Calibrator("ultraspec", stdname, logfile, TNT)
@@ -63,6 +59,9 @@ def main(args=None):
         plot_zeropoint_data(df, [band], results)
 
     resp = input("do you want to add these results to the quality control database?: ")
+    if re.match("Y", resp.upper()):
+        for row in results:
+            add_zeropoint_data(DBFILE, df, row)
     if re.match("Y", resp.upper()):
         for row in results:
             add_zeropoint_data(DBFILE, df, row)

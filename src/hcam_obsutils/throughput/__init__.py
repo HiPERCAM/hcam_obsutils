@@ -7,17 +7,8 @@ from astropy import units as u
 from astropy.coordinates import AltAz
 from astropy.stats import sigma_clipped_stats
 from astropy.time import Time
-from hipercam.core import (
-    BAD_TIME,
-    CLOUDS,
-    JUNK,
-    NO_DATA,
-    NO_EXTRACTION,
-    NO_FWHM,
-    NO_SKY,
-    TARGET_NONLINEAR,
-    TARGET_SATURATED,
-)
+from hipercam.core import (BAD_TIME, CLOUDS, JUNK, NO_DATA, NO_EXTRACTION,
+                           NO_FWHM, NO_SKY, TARGET_NONLINEAR, TARGET_SATURATED)
 from hipercam.hlog import Hlog
 from thefuzz import fuzz
 
@@ -31,7 +22,7 @@ std_tables = dict(
     hipercam="hcam_flux_stds.csv",
     ultracam_precube="ucam_flux_stds.csv",
     ultracam="ucam_cube_flux_stds.csv",
-    ultraspec="sdss_flux_stds.csv",
+    ultraspec="uspec_flux_stds.csv",
 )
 
 
@@ -58,7 +49,7 @@ class Calibrator:
         The name of the observatory where the data were taken.
     comp_logfile : str | None
         The logfile containing the comparison star observations.
-        If None, only zeropoints will be calculated.
+        If None, only zeropoints can be calculated.
     coords : astropy.coordinates.SkyCoord | None
         The coordinates of the comparison star(s). Required if comp_logfile is given.
 
@@ -93,6 +84,7 @@ class Calibrator:
         "r": 0.18,
         "i": 0.15,
         "z": 0.10,
+        "kg5": 0.23,
     }
 
     def __init__(
@@ -111,14 +103,19 @@ class Calibrator:
         if self.instrument == "ultracam":
             self.band_to_ccd = {"u": "3", "g": "2", "r": "1", "i": "1", "z": "1"}
         elif self.instrument == "ultraspec":
-            self.band_to_ccd = {"u": "1", "g": "1", "r": "1", "i": "1", "z": "1"}
+            self.band_to_ccd = {"u": "1", "g": "1", "r": "1", "i": "1", "z": "1", "kg5": "1"}
         else:
             self.band_to_ccd = {"u": "1", "g": "2", "r": "3", "i": "4", "z": "5"}
 
         self.std_name = std_name
         self.std_logfile = std_logfile
         self.comp_logfile = comp_logfile
-        self.coords = coords
+        
+        if coords is not None and not hasattr(coords, "transform_to"):
+            self.coords = coord.SkyCoord(coords, unit=(u.hour, u.deg))
+        else:
+            self.coords = coords
+
         if isinstance(observatory, str):
             self.observatory = coord.EarthLocation.of_site(observatory)
         else:
@@ -159,10 +156,13 @@ class Calibrator:
             self.postfix = "s"
         else:  # ultraspec
             filename = STD_PATH / std_tables["ultraspec"]
-            self.prefix = "sdss_"
+            self.prefix = ""
             self.postfix = ""
 
         bands = ["u", "g", "r", "i", "z"]
+        if self.instrument == "ultraspec":
+            bands.append("kg5")
+            
         df = pd.read_csv(filename)
         row = df.query(f"Name == '{self.std_name}'")
         if row.empty:
