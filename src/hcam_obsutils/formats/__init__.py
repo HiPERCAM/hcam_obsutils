@@ -51,7 +51,7 @@ def headers(dirpath: str, hcam: bool = False) -> Iterable[Hhead | Uhead]:
     dirpath = Path(dirpath)
     if dirpath.is_dir():
         header_files = dirpath.glob(HCAM_RE) if hcam else dirpath.glob(UCAM_RE)
-        for fn in header_files:
+        for fn in sorted(header_files):
             fn = fn.with_suffix("")
             header = Hhead(str(fn)) if hcam else Uhead(str(fn))
             if not hcam and header.isPonoff():
