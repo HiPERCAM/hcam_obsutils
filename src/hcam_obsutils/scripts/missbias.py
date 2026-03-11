@@ -55,6 +55,10 @@ def main():
             else:
                 destination = nonbiases
 
+            # skip data caution runs unless requested
+            if not args.include_caution and header.header["DTYPE"].lower() == "data caution":
+                continue
+
             # compare with already stored formats
             new_format = True
             for _, rold in destination.items():
@@ -67,10 +71,6 @@ def main():
 
     # now see if each non-bias has a matching bias
     for run, nhead in nonbiases.items():
-        # skip data caution runs unless requested
-        if not args.include_caution and nhead.header["DTYPE"].lower() == "data caution":
-            continue
-
         has_bias = False
         # loop over all unique bias formats looking for a match
         for _, bhead in biases.items():
