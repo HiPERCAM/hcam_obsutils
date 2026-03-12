@@ -8,6 +8,9 @@
 |hiperobs| manual
 =================
 
+.. image:: https://img.shields.io/pypi/v/hcam_obsutils.svg
+        :target: https://pypi.python.org/pypi/hcam_obsutils
+
 The |hiperobs| package provides a collection of utilities for working with |hiper| or |ultra|
 observations, including scripts for checking the readout noise, calculating zeropoints, 
 measuring gains, checking for missing bias frames, and more. 
