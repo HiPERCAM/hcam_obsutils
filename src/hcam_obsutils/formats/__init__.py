@@ -1,3 +1,9 @@
+"""
+Utility functions for working with HiPERCAM and ULTRACAM/ULTRASPEC data formats, 
+particularly for reading information in the headers of run files and 
+comparing them to determine if they correspond to the same format for the purposes of calibration.
+"""
+
 from pathlib import Path
 from typing import Iterable
 

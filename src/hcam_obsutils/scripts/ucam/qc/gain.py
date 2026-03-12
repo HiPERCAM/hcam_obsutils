@@ -18,19 +18,26 @@ def metadata(mccd):
     return date, readout, binning
 
 
-def main(args=None):
+def ucam_gain(args=None):
     """
-    Python script to measure ULTRACAM gain in a quick and dirty manner.
+    Python script to measure ULTRACAM gain.
 
     The two flats should have different mean count levels.
     Flat fields will be bias subtracted, so you also have to supply a bias frame
+
+    The bias is used to measure the RNO :math:`\sigma`. The two flat fields
+    are subtracted to create a difference frame :math:`\Delta` and averaged
+    to give :math:`{F}`. The gain is given by the formula:
+
+    .. math::
+        \\frac{1}{G} = \\left(\\frac{\\sigma_{\\Delta}^2 - 2\\sigma^2}{\\mu_F} \\right)
 
     Parameters
     ----------
     flat1 : str
         First flat field hcm file (should not be bias subtracted)
     flat2 : str
-        Second flat field hcm file
+        Second flat field hcm file (should not be bias subtracted)
     bias : str
         Bias frame hcm file
     """

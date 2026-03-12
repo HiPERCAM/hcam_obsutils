@@ -4,8 +4,11 @@ from pathlib import Path
 
 from astropy.coordinates import EarthLocation
 
-from hcam_obsutils.dbutils import (add_zeropoint_data, create_zeropoint_table,
-                                   get_zeropoint_data)
+from hcam_obsutils.dbutils import (
+    add_zeropoint_data,
+    create_zeropoint_table,
+    get_zeropoint_data,
+)
 from hcam_obsutils.qcutils import plot_zeropoint_data
 from hcam_obsutils.throughput import Calibrator
 
@@ -13,7 +16,36 @@ DB_LOCATION = Path(os.getenv("HCAM_QC_DBLOC", "/home/observer/qc"))
 DBFILE = DB_LOCATION / "ultraspec" / "uspec_qc.sqlite"
 
 
-def main(args=None):
+def uspec_zeropoints(args=None):
+    """
+    Calculate the zeropoint for a standard star observation.
+
+    uspec_zeropoints uses a reduced logfile from a standard star observation
+    to calculate the zeropoint. Default values of atmospheric extinction 
+    are assumed. 
+
+    This routine is intended to be used with observations of one of the standard
+    stars listed in the photometric standards compiled by Alex Brown, a database
+    of which is listed in the `data` directory of this repository. 
+
+    The zeropoints are plotted against a historical database of measurements
+    and you can optionally add this measurement to this database. The location 
+    of the database is set by the HCAM_QC_DBLOC environment variable. If not
+    set it will be nested inside /home/observer/qc.
+    
+    Parameters
+    ----------
+    logfile: str
+        Logfile containing standard star observations. You should use a 
+        large aperture to be sure to capture all the flux from the star. 
+
+    stdname: str
+        Name of the standard star. This should match one of the names in the
+        database of standards compiled by Alex Brown. 
+    
+    band: str
+        Band in which to calculate the zeropoint (e.g KG5, g, r, i, z).
+    """
     import warnings
 
     from sigfig import round as sigfig_round

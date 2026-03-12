@@ -1,5 +1,7 @@
 import dataclasses
+import os
 import re
+from pathlib import Path
 
 from hipercam import HCAM, MCCD
 
@@ -11,7 +13,8 @@ from hcam_obsutils.qcutils import (
     plot_qc_bias_archive,
 )
 
-DBFILE = "/home/observer/qc/ultraspec/uspec_qc.sqlite"
+DB_LOCATION = Path(os.getenv("HCAM_QC_DBLOC", "/home/observer/qc"))
+DBFILE = DB_LOCATION / "ultraspec" / "uspec_qc.sqlite"
 ccd_lut = {"1": "ccd"}
 win_lut = {"1": "1"}
 
@@ -24,7 +27,20 @@ class UspecReadoutMode(ReadoutMode):
     hvgain: int
 
 
-def main(args=None):
+def uspec_qc(args=None):
+    """
+    Calculate bias level and read noise for a single bias frame.
+
+    The results are plotted, compared with historical values and
+    can optionally be added to a database of bias measurements.
+    The location of the database is set by the HCAM_QC_DBLOC environment 
+    variable. If not set it will be nested inside /home/observer/qc.
+
+    Parameters
+    ----------
+    fname: str
+        bias hcm file to analyse. 
+    """
     from trm import cline
     from trm.cline import Cline
 

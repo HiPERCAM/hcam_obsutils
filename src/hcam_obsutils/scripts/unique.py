@@ -8,7 +8,22 @@ It can be used to identify how many different calibration frames are needed.
 """
 
 
-def main():
+def unique():
+    """Identify the unique observational formats present in a night of observing data.
+    
+    unique can be used to identify how many different calibration frames are needed.
+    
+    Parameters
+    ----------
+    include_caution : bool, optional
+        Include runs marked 'data caution' when listing formats. Default is False.
+    hcam : bool, optional
+        Process HiPERCAM runs rather than ULTRASPEC and/or ULTRACAM
+        runs. Default is False.
+        
+    dirs : list of str
+        Directories to search for runs, subdirectories called 'data' will also be searched.
+    """
     parser = argparse.ArgumentParser(description=HELP)
     parser.add_argument(
         "-i",

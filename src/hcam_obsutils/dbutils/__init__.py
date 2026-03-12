@@ -1,3 +1,10 @@
+"""
+Useful routines for writing quality control data (e.g. zeropoints, bias levels, gain) to a 
+sqlite database, and reading it back out into pandas dataframes.
+
+This is mostly intended for use in internal scripts.
+"""
+
 import sqlite3
 
 import pandas as pd
@@ -75,4 +82,6 @@ def add_gain_data(dbfile: str, df: pd.DataFrame, row: dict) -> None:
     df.loc[len(df)] = row
     df = remove_duplicate_rows(df, old_df)
     with sqlite3.connect(dbfile) as conn:
+        df.to_sql("gain", conn, if_exists="append")
+        df.to_sql("gain", conn, if_exists="append")
         df.to_sql("gain", conn, if_exists="append")

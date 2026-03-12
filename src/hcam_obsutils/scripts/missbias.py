@@ -2,6 +2,8 @@ import argparse
 
 from hcam_obsutils.formats import headers, hhead_equal, is_bias, uhead_equal
 
+__all__ = ["missbias"]
+
 HELP = """
 missbias reads all the runs in the directories specified and tries to work out if there
 are any non-biases without corresponding biases. This is a crude test and does not verify that
@@ -10,7 +12,24 @@ directories specified, the script also looks for subdirectories called 'data'
 """
 
 
-def main():
+def missbias():
+    """
+    missbias reads all the runs in the directories specified and tries to work out if there
+    are any non-biases without corresponding biases. This is a crude test and does not verify that
+    runs identified as 'Bias' are what they say they are or that they are any good. As well as the
+    directories specified, the script also looks for subdirectories called 'data'
+
+    Parameters
+    ----------
+    fussy : bool, optional
+        fussy tests ensure difference in avalanche gains are picked up, only important for ULTRASPEC
+    include_caution : bool, optional
+        include runs marked 'data caution' when listing runs without biasses
+    hcam : bool, optional
+        process HiPERCAM runs rather than ULTRASPEC and/or ULTRACAM runs
+    dirs : list of str, optional
+        directories to search for runs, subdirectories called 'data' will also be searched
+    """
     parser = argparse.ArgumentParser(description=HELP)
     parser.add_argument(
         "-f",

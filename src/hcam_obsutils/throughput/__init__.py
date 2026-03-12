@@ -1,4 +1,12 @@
+"""
+Functions for calculating the photometric throughput of the instrument, based on standard star observations.
+
+The main class is the `Calibrator` class, which can be used to calculate zeropoints from standard star observations, 
+or to calculate magnitudes of comparison stars in the field.
+"""
+
 import importlib
+from typing import Literal
 
 import numpy as np
 import pandas as pd
@@ -131,13 +139,17 @@ class Calibrator:
 
         self.get_std_info()
 
-    def set_atm_extinction(self, band, value):
+    def set_atm_extinction(self, band: str, value: float) -> None:
         """
         Sets the atmospheric extinction coefficient for a given band
         """
         self.atm_extinction[band] = value
 
-    def get_std_info(self):
+    def get_std_info(self) -> None:
+        """
+        Reads the standard star information from the appropriate table, based on the instrument and date of observation.
+        Sets the standard star coordinates and magnitudes as attributes of the class.
+        """
         if self.instrument == "ultracam":
             if self.date < ucam_dates["CUBE"]:
                 filename = STD_PATH / std_tables["ultracam_precube"]
@@ -178,9 +190,18 @@ class Calibrator:
             band: row[f"{self.prefix}{band}{self.postfix}"].values[0] for band in bands
         }
 
-    def inst_mags(self, which, band, aperture):
+    def inst_mags(self, which: Literal['std', 'comp'], band: str, aperture: str | int) -> np.ndarray:
         """
         Calculates the instrumental magnitudes, corrected for atmospheric extinction
+
+        Parameters
+        ----------
+        which : {'std', 'comp'}
+            Whether to calculate the instrumental magnitudes for the standard star ('std') or the comparison star
+        band : str
+            The band to calculate the magnitudes for (e.g. 'u', 'g', 'r', 'i', 'z')
+        aperture : str or int
+            The aperture to use for the photometry (e.g. '1', '2', '3', etc.)
         """
         if which not in ["std", "comp"]:
             raise ValueError(f"Unknown value for 'which': {which}")
@@ -194,7 +215,8 @@ class Calibrator:
             coords = self.coords
 
         ccd = self.band_to_ccd[band]
-
+        aperture = str(aperture)
+        
         # first we create a "Tseries". This is the "raw" photometry.
         lf = Hlog.rascii(logfile)
         ts = lf.tseries(ccd, aperture)
@@ -223,9 +245,19 @@ class Calibrator:
         m_inst = -2.5 * np.log10(y / expt / 86400) - k * airmass
         return m_inst
 
-    def get_zeropoint(self, band):
+    def get_zeropoint(self, band: str) -> tuple[float, float, float]:
         """
         Calculate zeropoint for a given band based on std star observations
+
+        Parameters
+        ----------
+        band : str
+            The band to calculate the zeropoint for (e.g. 'u', 'g', 'r', 'i', 'z')
+
+        Returns
+        -------
+        tuple[float, float, float]
+            The mean, median, and error of the zeropoint
         """
         g_inst_std = self.inst_mags("std", band, "1")
         zp_mean, zp_median, zp_err = sigma_clipped_stats(
@@ -233,10 +265,18 @@ class Calibrator:
         )
         return zp_mean, zp_median, zp_err
 
-    def comparison_mags(self, band, aperture):
+    def comparison_mags(self, band: str, aperture: str | int) -> tuple[float, float, float]:
         """
         Calculates the comparison magnitudes
+
+        Parameters
+        ----------
+        band : str
+            The band to calculate the magnitudes for (e.g. 'u', 'g', 'r', 'i', 'z')
+        aperture : str or int
+            The aperture to use for the photometry (e.g. '1', '2', '3', etc.)
         """
+        aperture = str(aperture)
         if self.comp_logfile is None:
             raise ValueError("comp_logfile is not set")
         inst_comp = self.inst_mags("comp", band, aperture)

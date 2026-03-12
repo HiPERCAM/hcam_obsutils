@@ -16,6 +16,9 @@ from skimage.util import view_as_blocks
 
 # abstract base class for readout modes
 class ReadoutMode:
+    """
+    Abstract base class for readout modes.
+    """
     def asdict(self) -> dict:
         """
         Convert the ReadoutMode to a dictionary.

@@ -5,7 +5,27 @@ from matplotlib.patches import Rectangle
 from hcam_obsutils.qcutils.gain import gain_simple
 
 
-def main(args=None):
+def ucam_gain_simple(args=None):
+    """
+    A crude estimate of the gain from a single flat field frame.
+
+    A bias is supplied to correct the flat field and the gain 
+    is calculated from the (bias subtraced) flat as:
+
+    .. math::
+        G = \\left(\\frac{\\sqrt{\\mu}}{\\sigma}\\right)^2
+
+    where :math:`\mu` and :math:`\sigma` are the mean and standard deviation
+    the bias subtracted flat field in a small region of the CCD.
+
+    Parameters
+    ----------
+    flat : str
+        Flat field hcm file (should not be bias subtracted).
+    bias : str
+        Bias frame hcm file.
+    """
+
     from trm import cline
     from trm.cline import Cline
 
